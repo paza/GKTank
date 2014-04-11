@@ -125,23 +125,23 @@ typedef struct {
 	UIAlertView		*connectionAlert;
 }
 
-@property(nonatomic, retain) IBOutlet UIImageView	*tank1;
-@property(nonatomic, retain) IBOutlet UIImageView	*tank2;
-@property(nonatomic, retain) IBOutlet UIImageView	*missile1;
-@property(nonatomic, retain) IBOutlet UIImageView	*missile2;
-@property(nonatomic, retain) IBOutlet UILabel		*gameLabel;
-@property(nonatomic, retain) IBOutlet UILabel		*score1;
-@property(nonatomic, retain) IBOutlet UILabel		*score2;
-@property(nonatomic, retain) UIImage *levelBlockV;
-@property(nonatomic, retain) UIImage *levelBlockH;
+@property(nonatomic, strong) IBOutlet UIImageView	*tank1;
+@property(nonatomic, strong) IBOutlet UIImageView	*tank2;
+@property(nonatomic, strong) IBOutlet UIImageView	*missile1;
+@property(nonatomic, strong) IBOutlet UIImageView	*missile2;
+@property(nonatomic, strong) IBOutlet UILabel		*gameLabel;
+@property(nonatomic, strong) IBOutlet UILabel		*score1;
+@property(nonatomic, strong) IBOutlet UILabel		*score2;
+@property(nonatomic, strong) UIImage *levelBlockV;
+@property(nonatomic, strong) UIImage *levelBlockH;
 
 @property(nonatomic) NSInteger		gameState;
 @property(nonatomic) NSInteger		peerStatus;
 
-@property(nonatomic, retain) GKSession	 *gameSession;
+@property(nonatomic, strong) GKSession	 *gameSession;
 @property(nonatomic, copy)	 NSString	 *gamePeerId;
-@property(nonatomic, retain) NSDate		 *lastHeartbeatDate;
-@property(nonatomic, retain) UIAlertView *connectionAlert;
+@property(nonatomic, strong) NSDate		 *lastHeartbeatDate;
+@property(nonatomic, strong) UIAlertView *connectionAlert;
 
 - (void)invalidateSession:(GKSession *)session;
 

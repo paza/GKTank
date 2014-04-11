@@ -98,12 +98,24 @@ const float kHeartbeatTimeMaxDelay = 2.0f;
 
 #define kMaxTankPacketSize 1024
 
+@interface TankViewController ()  <NSXMLParserDelegate>
+
+@end
+
 #pragma mark -
 @implementation TankViewController
 
 #pragma mark View Controller Related Methods
 
 @synthesize tank1, tank2, missile1, missile2, gameState, peerStatus, gameLabel, levelBlockV, levelBlockH, score1, score2, gameSession, gamePeerId, lastHeartbeatDate, connectionAlert;
+
++ (NSString *)generateUUID
+{
+    CFUUIDRef theUUID = CFUUIDCreate(NULL);
+    CFStringRef string = CFUUIDCreateString(NULL, theUUID);
+    CFRelease(theUUID);
+    return (__bridge_transfer NSString *)string;
+}
 
 // Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
 - (void)viewDidLoad {
@@ -115,10 +127,9 @@ const float kHeartbeatTimeMaxDelay = 2.0f;
 	gamePeerId = nil;
 	lastHeartbeatDate = nil;
 		
-	NSString *uid = [[UIDevice currentDevice] uniqueIdentifier];
-	
 	levelBlocks = 0;
-	gameUniqueID = [uid hash];
+    
+	gameUniqueID = (int)[[TankViewController generateUUID] hash];
 	
 	NSError *parseError = nil;
 	NSBundle *bundle = [NSBundle mainBundle];
@@ -146,35 +157,20 @@ const float kHeartbeatTimeMaxDelay = 2.0f;
 
 
 - (void)dealloc { 
-	self.tank1 = nil;
-	self.tank2 = nil;
-	self.missile1 = nil;
-	self.missile2 = nil;
-	self.gameLabel = nil;
-	self.score1 = nil;
-	self.score2 = nil;
-	self.lastHeartbeatDate = nil;
 	if(self.connectionAlert.visible) {
 		[self.connectionAlert dismissWithClickedButtonIndex:-1 animated:NO];
 	}
-	self.connectionAlert = nil;
 	
 	// release each of the walls
 	for(int i=0; i<levelBlocks;i++) {
-		[walls[i] release];
 		walls[i] = nil; 
 	}
 	levelBlocks = 0;
 	
-	self.levelBlockV = nil;
-	self.levelBlockH = nil;
 	
 	// cleanup the session
 	[self invalidateSession:self.gameSession];
-	self.gameSession = nil;
-	self.gamePeerId = nil;
 	
-	[super dealloc];
 }
 
 #pragma mark -
@@ -197,7 +193,6 @@ const float kHeartbeatTimeMaxDelay = 2.0f;
     
 	// autorelease the picker. 
 	picker.delegate = nil;
-    [picker autorelease]; 
 	
 	// invalidate and release game session if one is around.
 	if(self.gameSession != nil)	{
@@ -219,7 +214,7 @@ const float kHeartbeatTimeMaxDelay = 2.0f;
 //
 - (GKSession *)peerPickerController:(GKPeerPickerController *)picker sessionForConnectionType:(GKPeerPickerConnectionType)type { 
 	GKSession *session = [[GKSession alloc] initWithSessionID:kTankSessionID displayName:nil sessionMode:GKSessionModePeer]; 
-	return [session autorelease]; // peer picker retains a reference, so autorelease ours so we don't leak.
+	return session; // peer picker retains a reference, so autorelease ours so we don't leak.
 }
 
 - (void)peerPickerController:(GKPeerPickerController *)picker didConnectPeer:(NSString *)peerID toSession:(GKSession *)session { 
@@ -234,7 +229,6 @@ const float kHeartbeatTimeMaxDelay = 2.0f;
 	// Done with the Peer Picker so dismiss it.
 	[picker dismiss];
 	picker.delegate = nil;
-	[picker autorelease];
 	
 	// Start Multiplayer game by entering a cointoss state to determine who is server/client.
 	self.gameState = kStateMultiplayerCointoss;
@@ -356,9 +350,9 @@ const float kHeartbeatTimeMaxDelay = 2.0f;
 		
 		NSData *packet = [NSData dataWithBytes: networkPacket length: (length+8)];
 		if(howtosend == YES) { 
-			[session sendData:packet toPeers:[NSArray arrayWithObject:gamePeerId] withDataMode:GKSendDataReliable error:nil];
+			[session sendData:packet toPeers:@[gamePeerId] withDataMode:GKSendDataReliable error:nil];
 		} else {
-			[session sendData:packet toPeers:[NSArray arrayWithObject:gamePeerId] withDataMode:GKSendDataUnreliable error:nil];
+			[session sendData:packet toPeers:@[gamePeerId] withDataMode:GKSendDataUnreliable error:nil];
 		}
 	}
 }
@@ -383,7 +377,6 @@ const float kHeartbeatTimeMaxDelay = 2.0f;
 			UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Lost Connection" message:message delegate:self cancelButtonTitle:@"End Game" otherButtonTitles:nil];
 			self.connectionAlert = alert;
 			[alert show];
-			[alert release];
 		}
 		
 		// go back to start mode
@@ -480,7 +473,6 @@ const float kHeartbeatTimeMaxDelay = 2.0f;
 					UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Lost Connection" message:message delegate:self cancelButtonTitle:@"End Game" otherButtonTitles:nil];
 					self.connectionAlert = alert;
 					[alert show];
-					[alert release];
 					self.gameState = kStateMultiplayerReconnect;
 				}
 				
@@ -762,7 +754,6 @@ const float kHeartbeatTimeMaxDelay = 2.0f;
 		*error = parseError;
 	}
 	
-	[parser release];
 	
 	return (parseError) ? YES : NO; 
 }
